@@ -1,0 +1,7 @@
+
+/node_modules
+/.nyc_output
+/test/cache
+libnpx.1
+/bin/CHANGELOG.md
+/bin/LICENSE.md
