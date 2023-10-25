@@ -48,7 +48,7 @@ const Page: React.FC = () => {
             .slice(i, i + wordsInPhrase.length)
             .join(" ");
           if (
-            joinedPhrase.replace(/[^\w\s'()-]/g, "").toLowerCase() ===
+            joinedPhrase.replace(/^[\W_]+|[\W_]+$/g, "").toLowerCase() ===
             phrase.toLowerCase()
           ) {
             for (let j = i; j < i + wordsInPhrase.length; j++) {
@@ -62,7 +62,7 @@ const Page: React.FC = () => {
       } else {
         wordsInSentence.forEach((word, index) => {
           if (
-            word.toLowerCase().replace(/[^\w\s'()-]/g, "") ===
+            word.toLowerCase().replace(/^[\W_]+|[\W_]+$/g, "") ===
             phrase.toLowerCase()
           ) {
             indices.push(index);
@@ -109,7 +109,7 @@ const Page: React.FC = () => {
         .map((i) =>
           enText
             .split(" ")
-            [i].replace(/[^\w\s'()-]$/, "")
+            [i].replace(/^[\W_]+|[\W_]+$/g, "")
             .trim()
         )
         .join(" ");
@@ -165,11 +165,11 @@ const Page: React.FC = () => {
 
   const getTranslation = (selectedPhrase) => {
     const cleanSelectedPhrase = selectedPhrase
-      .replace(/[^\w\s'()-]/g, "")
+      .replace(/^[\W_]+|[\W_]+$/g, "")
       .trim();
     for (let i = 0; i < translation.length; i++) {
       const cleanEnPhrase = translation[i][0]
-        .replace(/[^\w\s'()-]/g, "")
+        .replace(/^[\W_]+|[\W_]+$/g, "")
         .trim();
       if (cleanEnPhrase === cleanSelectedPhrase) {
         return translation[i][1];
@@ -193,7 +193,7 @@ const Page: React.FC = () => {
     <div className="w-full flex flex-col">
       <p>
         {enText.split(" ").map((word, index) => {
-          const cleanWord = word.replace(/[^\w\s'-]/g, "");
+          const cleanWord = word.replace(/^[\W_]+|[\W_]+$/g, "");
           const beginningPunctuation = word.match(/^(\W+)/)?.[1] || "";
           const endPunctuation = word.match(/(\W+)$/)?.[1] || "";
 

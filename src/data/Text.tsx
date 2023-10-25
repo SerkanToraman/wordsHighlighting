@@ -39,7 +39,7 @@ export const translation = [
   ["cultures.", "kültürlerini"],
   ["However,", "Ancak"],
   ["his", "onun"],
-  ["troops'", "ordusunun"],
+  ["troops\'", "ordusunun"],
   ["refusal", "reddi"],
   ["to", "etmek"],
   ["advance", "ilerlemeyi"],
