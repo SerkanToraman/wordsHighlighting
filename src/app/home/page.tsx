@@ -1,12 +1,19 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { addWord } from "@/store/features/word-slice";
+import { addFlashCardWord, addKnownWord } from "@/store/features/word-slice";
 import { useWordSelector } from "@/store/store";
+import { translation } from "@/data/Text";
+
+const enText = translation.map((item) => item[0]).join(" ");
+const trText = translation.map((item) => item[1]).join(" ");
 
 const Page: React.FC = () => {
   const dispatch = useDispatch();
-  const savedWords = useWordSelector((state) => state.wordReducer.savedWords);
+  const flashCardWords = useWordSelector(
+    (state) => state.wordReducer.flashCardWords
+  );
+  const knownWords = useWordSelector((state) => state.wordReducer.knownWords);
   const [startPosition, setStartPosition] = useState<number | null>(null);
   const [selectedPhrase, setSelectedPhrase] = useState<string>("");
   const [selectedWords, setSelectedWords] = useState<number[]>([]);
@@ -14,9 +21,60 @@ const Page: React.FC = () => {
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const handleAddToFlashcards = (word: string) => {
-    dispatch(addWord(word));
+  const handleAddToFlashCards = (word: string) => {
+    dispatch(addFlashCardWord(word));
   };
+  const handleAddToKnownWords = (word: string) => {
+    dispatch(addKnownWord(word));
+  };
+
+  const checkIfWordIsInFlashCards = (
+    sentence: string,
+    flashCardWords: string[]
+  ) => {
+    const indices: number[] = [];
+    const wordsInSentence = sentence.split(" ");
+
+    flashCardWords.forEach((phrase) => {
+      const wordsInPhrase = phrase.split(" ");
+      if (wordsInPhrase.length > 1) {
+        const subIndices: number[] = [];
+        for (
+          let i = 0;
+          i <= wordsInSentence.length - wordsInPhrase.length;
+          i++
+        ) {
+          const joinedPhrase = wordsInSentence
+            .slice(i, i + wordsInPhrase.length)
+            .join(" ");
+          if (
+            joinedPhrase.replace(/[^\w\s'()-]/g, "").toLowerCase() ===
+            phrase.toLowerCase()
+          ) {
+            for (let j = i; j < i + wordsInPhrase.length; j++) {
+              subIndices.push(j);
+            }
+          }
+        }
+        if (subIndices.length > 0) {
+          indices.push(subIndices);
+        }
+      } else {
+        wordsInSentence.forEach((word, index) => {
+          if (
+            word.toLowerCase().replace(/[^\w\s'()-]/g, "") ===
+            phrase.toLowerCase()
+          ) {
+            indices.push(index);
+          }
+        });
+      }
+    });
+
+    return indices;
+  };
+
+  const indices = checkIfWordIsInFlashCards(enText, flashCardWords);
 
   const handlePageClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -25,6 +83,7 @@ const Page: React.FC = () => {
       !(modalRef.current?.contains(target) || target.closest("span"))
     ) {
       setShowModal(false);
+      setSelectedWords([]);
     }
   };
 
@@ -47,7 +106,12 @@ const Page: React.FC = () => {
       );
       setSelectedWords(selected);
       const selectedWordList = selected
-        .map((i) => sentence.split(" ")[i].replace(/[^\w\s'()-]$/, ""))
+        .map((i) =>
+          enText
+            .split(" ")
+            [i].replace(/[^\w\s'()-]$/, "")
+            .trim()
+        )
         .join(" ");
       console.log("Selected words:", selectedWordList);
       setSelectedPhrase(selectedWordList);
@@ -86,6 +150,7 @@ const Page: React.FC = () => {
   useEffect(() => {
     console.log(selectedWords);
     console.log(showModal);
+    console.log("indices", indices);
   }, [selectedWords]);
 
   const handleMouseDown = (
@@ -94,35 +159,102 @@ const Page: React.FC = () => {
     index: number
   ) => {
     setStartPosition(index);
+    setShowModal(false);
     setSelectedWords([]);
   };
 
-  const sentence =
-    "Alexander the Great (356-323 BC), Macedonian king, forged one of history's largest empires through relentless military campaigns. Notable victories over Persia showcased his tactical genius. His ambition extended beyond conquest, promoting the blending of Greek and Persian cultures. However, his troops' refusal to advance into India halted further expansion. His sudden death at 32 led to his empire's fragmentation among warring generals, marking the end of the Hellenistic period. His legacy endures, shaping Western civilization's military strategies and cultural integration.";
+  const getTranslation = (selectedPhrase) => {
+    const cleanSelectedPhrase = selectedPhrase
+      .replace(/[^\w\s'()-]/g, "")
+      .trim();
+    for (let i = 0; i < translation.length; i++) {
+      const cleanEnPhrase = translation[i][0]
+        .replace(/[^\w\s'()-]/g, "")
+        .trim();
+      if (cleanEnPhrase === cleanSelectedPhrase) {
+        return translation[i][1];
+      }
+    }
+    const wordsInPhrase = cleanSelectedPhrase.split(" ");
+    let translatedPhrase = "";
+    for (let i = 0; i < wordsInPhrase.length; i++) {
+      const cleanWord = wordsInPhrase[i];
+      for (let j = 0; j < translation.length; j++) {
+        if (translation[j][0].includes(cleanWord)) {
+          translatedPhrase += translation[j][1] + " ";
+          break;
+        }
+      }
+    }
+    return translatedPhrase.trim();
+  };
 
   return (
     <div className="w-full flex flex-col">
       <p>
-        {sentence.split(" ").map((word, index) => {
-          const cleanWord = word.replace(/[^\w\s'()-]/g, "");
-          const punctuation = word.replace(/[\w\s'()-]/g, "");
+        {enText.split(" ").map((word, index) => {
+          const cleanWord = word.replace(/[^\w\s'-]/g, "");
+          const beginningPunctuation = word.match(/^(\W+)/)?.[1] || "";
+          const endPunctuation = word.match(/(\W+)$/)?.[1] || "";
+
+          const isNextIndexSelected =
+            indices.some((item) => {
+              if (Array.isArray(item)) {
+                const currentArrayIndex = item.indexOf(index);
+                if (
+                  currentArrayIndex !== -1 &&
+                  item[currentArrayIndex + 1] === index + 1
+                ) {
+                  return true;
+                }
+              }
+              return false;
+            }) || false;
+
+          const hasBackground =
+            indices.some((item) => {
+              if (Array.isArray(item)) {
+                return item.includes(index);
+              } else {
+                return item === index;
+              }
+            }) || false;
 
           return (
             <span key={index}>
+              <span>{beginningPunctuation}</span>
               <span
                 onMouseDown={(e) => handleMouseDown(e, cleanWord, index)}
                 onMouseUp={(e) => handleMouseUp(e, cleanWord, index)}
                 style={{
                   display: "inline-block",
-                  backgroundColor: selectedWords.includes(index)
+                  backgroundColor: indices.some((item) =>
+                    Array.isArray(item) ? item.includes(index) : item === index
+                  )
+                    ? "rgb(196 181 253)"
+                    : selectedWords.includes(index)
                     ? "yellow"
+                    : !knownWords.includes(cleanWord)
+                    ? "rgb(103 232 249)"
                     : "transparent",
                 }}
               >
                 {cleanWord}
               </span>
-              <span>{punctuation}</span>
-              <span>&nbsp;</span>
+              <span>{endPunctuation}</span>
+
+              {hasBackground && isNextIndexSelected ? (
+                <span
+                  style={{
+                    display: "inline-block",
+                    backgroundColor: "rgb(196 181 253)",
+                  }}
+                >
+                  &nbsp;
+                </span>
+              ) : (
+                <span>&nbsp;</span>
+              )}
             </span>
           );
         })}
@@ -130,24 +262,26 @@ const Page: React.FC = () => {
       {showModal && (
         <div
           ref={modalRef}
-          className="fixed z-10 overflow-y-auto top-0 w-full left-0"
+          className="fixed z-10 overflow-y-auto top-0 w-40 left-0"
           style={{
             position: "absolute",
             top: modalPosition.top,
             left: modalPosition.left,
           }}
         >
-          <div className="bg-emerald-500 w-40 p-4 shadow-lg">
-            {selectedPhrase}
-            <button onClick={() => handleAddToFlashcards(selectedPhrase)}>
+          <div className="bg-emerald-500 p-4 shadow-lg">
+            {getTranslation(selectedPhrase)}
+            <button onClick={() => handleAddToFlashCards(selectedPhrase)}>
               Add to flashcards
             </button>
-            <button onClick={() => setShowModal(false)}>Close</button>
+            <button onClick={() => handleAddToKnownWords(selectedPhrase)}>
+              Add to known words
+            </button>
           </div>
         </div>
       )}
       <p>
-        {savedWords.map((word, index) => (
+        {flashCardWords.map((word, index) => (
           <p key={index}>{word}</p>
         ))}
       </p>

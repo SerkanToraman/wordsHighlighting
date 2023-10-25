@@ -3,7 +3,7 @@ import React from "react";
 import { useWordSelector } from "@/store/store";
 
 const Page: React.FC = () => {
-  const savedWords = useWordSelector((state) => state.wordReducer.savedWords);
+  const savedWords = useWordSelector((state) => state.wordReducer.flashCardWords);
   return (
     <div>
       <h1>a</h1>

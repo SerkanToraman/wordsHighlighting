@@ -5,23 +5,38 @@ type InitialState = {
 };
 
 type WordState = {
-  savedWords: string[];
+  flashCardWords: string[];
+  knownWords: string[];
 };
 
 const initialState: WordState = {
-  savedWords: [],
+  flashCardWords: [],
+  knownWords: [],
 };
 
 export const word = createSlice({
   name: "word",
   initialState,
   reducers: {
-    addWord: (state, action: PayloadAction<string>) => {
-      state.savedWords.push(action.payload);
+    addFlashCardWord: (state, action: PayloadAction<string>) => {
+      const newWord = action.payload;
+      if (!state.flashCardWords.includes(newWord)) {
+        state.flashCardWords.push(newWord);
+      }
+    },
+    addKnownWord: (state, action: PayloadAction<string>) => {
+      const newWords = action.payload
+        .split(" ")
+        .filter((word) => word.trim() !== "");
+      newWords.forEach((newWord) => {
+        if (!state.knownWords.includes(newWord)) {
+          state.knownWords.push(newWord);
+        }
+      });
     },
   },
 });
 
-export const { addWord } = word.actions;
+export const { addFlashCardWord, addKnownWord } = word.actions;
 
 export default word.reducer;
