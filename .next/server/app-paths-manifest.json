@@ -1,3 +1,6 @@
 {
-  "/home/page": "app/home/page.js"
+  "/_not-found": "app/_not-found.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/home/page": "app/home/page.js",
+  "/flashcard/page": "app/flashcard/page.js"
 }
