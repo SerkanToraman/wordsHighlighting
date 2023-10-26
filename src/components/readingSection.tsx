@@ -95,8 +95,8 @@ const ReadingSection: React.FC = () => {
     };
   }, [showModal]);
 
-  const handleMouseUp = (
-    e: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+  const handleMouseOrTouchEnd = (
+    e: React.MouseEvent<HTMLSpanElement> | React.TouchEvent<HTMLSpanElement>,
     cleanWord: string,
     index: number
   ) => {
@@ -154,8 +154,8 @@ const ReadingSection: React.FC = () => {
     // console.log("indices", indices);
   }, [selectedWords]);
 
-  const handleMouseDown = (
-    e: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+  const handleMouseOrTouchStart = (
+    e: React.MouseEvent<HTMLSpanElement> | React.TouchEvent<HTMLSpanElement>,
     cleanWord: string,
     index: number
   ) => {
@@ -225,8 +225,14 @@ const ReadingSection: React.FC = () => {
             <span key={index}>
               <span>{beginningPunctuation}</span>
               <span
-                onMouseDown={(e) => handleMouseDown(e, cleanWord, index)}
-                onMouseUp={(e) => handleMouseUp(e, cleanWord, index)}
+                onMouseDown={(e) =>
+                  handleMouseOrTouchStart(e, cleanWord, index)
+                }
+                onTouchStart={(e) =>
+                  handleMouseOrTouchStart(e, cleanWord, index)
+                }
+                onMouseUp={(e) => handleMouseOrTouchEnd(e, cleanWord, index)}
+                onTouchEnd={(e) => handleMouseOrTouchEnd(e, cleanWord, index)}
                 style={{
                   display: "inline-block",
                   backgroundColor: indices.some((item) =>
