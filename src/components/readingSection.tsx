@@ -3,10 +3,10 @@ import React, { useRef, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { addFlashCardWord, addKnownWord } from "@/store/features/word-slice";
 import { useWordSelector } from "@/store/store";
-import { translation } from "@/data/text";
+import text from "@/data/text.json";
 
-const enText = translation.map((item) => item[0]).join(" ");
-const trText = translation.map((item) => item[1]).join(" ");
+const enText = text.translation.map((item) => item[0]).join(" ");
+const trText = text.translation.map((item) => item[1]).join(" ");
 
 const ReadingSection: React.FC = () => {
   const dispatch = useDispatch();
@@ -53,8 +53,8 @@ const ReadingSection: React.FC = () => {
               subIndices.push(j);
             }
           }
-          console.log("joinedPhrase", joinedPhrase);
-          console.log("phrase", phrase);
+          // console.log("joinedPhrase", joinedPhrase);
+          // console.log("phrase", phrase);
         }
 
         if (subIndices.length > 0) {
@@ -114,7 +114,7 @@ const ReadingSection: React.FC = () => {
             .trim()
         )
         .join(" ");
-      console.log("Selected words:", selectedWordList);
+      // console.log("Selected words:", selectedWordList);
       setSelectedPhrase(selectedWordList);
     }
     setTimeout(() => {
@@ -149,9 +149,9 @@ const ReadingSection: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log(selectedWords);
-    console.log(showModal);
-    console.log("indices", indices);
+    // console.log(selectedWords);
+    // console.log(showModal);
+    // console.log("indices", indices);
   }, [selectedWords]);
 
   const handleMouseDown = (
@@ -168,21 +168,21 @@ const ReadingSection: React.FC = () => {
     const cleanSelectedPhrase = selectedPhrase
       .replace(/^[\W_]+|[\W_]+$/g, "")
       .trim();
-    for (let i = 0; i < translation.length; i++) {
-      const cleanEnPhrase = translation[i][0]
+    for (let i = 0; i < text.translation.length; i++) {
+      const cleanEnPhrase = text.translation[i][0]
         .replace(/^[\W_]+|[\W_]+$/g, "")
         .trim();
       if (cleanEnPhrase === cleanSelectedPhrase) {
-        return translation[i][1];
+        return text.translation[i][1];
       }
     }
     const wordsInPhrase = cleanSelectedPhrase.split(" ");
     let translatedPhrase = "";
     for (let i = 0; i < wordsInPhrase.length; i++) {
       const cleanWord = wordsInPhrase[i];
-      for (let j = 0; j < translation.length; j++) {
-        if (translation[j][0].includes(cleanWord)) {
-          translatedPhrase += translation[j][1] + " ";
+      for (let j = 0; j < text.translation.length; j++) {
+        if (text.translation[j][0].includes(cleanWord)) {
+          translatedPhrase += text.translation[j][1] + " ";
           break;
         }
       }
